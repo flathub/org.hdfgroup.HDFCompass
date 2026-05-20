@@ -3,6 +3,8 @@ runtime: org.freedesktop.Platform
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
 command: HDFCompass
+tags: 
+  - proprietary
 finish-args:
   - --socket=x11
   - --device=all
