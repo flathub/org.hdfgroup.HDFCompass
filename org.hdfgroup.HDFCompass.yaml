@@ -1,8 +1,9 @@
 id: org.hdfgroup.HDFCompass
 runtime: org.freedesktop.Platform
-runtime-version: '24.08'
+runtime-version: '26.08'
 sdk: org.freedesktop.Sdk
 command: HDFCompass
+rename-desktop-file: HDFCompass.desktop
 finish-args:
   - --socket=x11
   - --device=all
@@ -10,12 +11,22 @@ finish-args:
   - --filesystem=xdg-desktop
   - --filesystem=xdg-documents
   - --filesystem=xdg-download
+cleanup:
+  - /include
+  - /man
+  - /share/aclocal
+  - /share/bakefile
+  - /share/hdf5_examples
+  - '*.la'
+  - '*.a'
 
 modules:
   - shared-modules/python2.7/python-2.7.json
 
   - name: wxWidgets
     buildsystem: autotools
+    build-options:
+      cxxflags: -std=gnu++14
     config-opts:
       - --disable-monolithic
       - --disable-rpath
@@ -34,8 +45,7 @@ modules:
         sha256: 346879dc554f3ab8d6da2704f651ecb504a22e9d31c17ef5449b129ed711585d
       - type: shell
         commands:
-          - cp /usr/share/gnu-config/config.sub .
-          - cp /usr/share/gnu-config/config.guess .
+          - cp /usr/share/automake-*/config.{guess,sub} .
 
   - name: wxPython
     buildsystem: simple
@@ -88,6 +98,13 @@ modules:
 
   - name: hdfcompass
     buildsystem: simple
+    build-commands:
+      - python2 setup.py install --prefix=/app --root=/
+    post-install:
+      - desktop-file-edit --set-icon=${FLATPAK_ID} HDFCompass.desktop
+      - install -Dm0644 HDFCompass.desktop -t /app/share/applications/
+      - install -Dm0644 ${FLATPAK_ID}.appdata.xml -t /app/share/metainfo/
+      - install -Dm0644 ${FLATPAK_ID}.png -t /app/share/icons/hicolor/128x128/apps/
     sources:
       - type: git
         url: https://github.com/HDFGroup/hdf-compass.git
@@ -96,11 +113,3 @@ modules:
         path: org.hdfgroup.HDFCompass.appdata.xml
       - type: file
         path: org.hdfgroup.HDFCompass.png
-    build-commands:
-      - python2 setup.py install --prefix=${FLATPAK_DEST} --root=/
-    post-install:
-      - install -Dm0644 HDFCompass.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
-      - desktop-file-edit ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
-        --set-key "Icon" --set-value "${FLATPAK_ID}"
-      - install -Dm0644 org.hdfgroup.HDFCompass.appdata.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.appdata.xml
-      - install -Dm0644 org.hdfgroup.HDFCompass.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
